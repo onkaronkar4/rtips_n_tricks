@@ -1,0 +1,50 @@
+---
+title: "quarto_tips_n_tricks"
+format: html
+editor: visual
+---
+
+## Tabset inside Tabsets
+
+::: {.panel-tabset style="color:purple"}
+## North
+
+::: {.panel-tabset style="colr: white"}
+## UP
+
+## MP
+
+## Uttarakhand
+
+## Chattisgarsh
+
+## Bihar
+
+## Jharkhad
+:::
+
+## South
+
+## East
+
+## West
+:::
+
+## Quarto Website
+
+### [Best Resource to get started](https://www.youtube.com/playlist?list=PLkrJrLs7xfbXcEKhTCKRSr2VXH4yiBeXo)
+
+I will use this to build my page called onkarsingh
+
+best way to sync your local folder and make a repo on the github is the following steps.
+
+To add an existing folder or repo at your local machine to a GitHub repository from RStudio, you can follow these steps:
+
+1.  [Use the `usethis::use_git()` function to initialize the repository and (optionally) add and commit files ](https://sites.northwestern.edu/researchcomputing/2022/05/11/git-with-rstudio-order-matters/) Choose the commit yes option
+2.  [Use the `usethis::use_github()` function](https://sites.northwestern.edu/researchcomputing/2022/05/11/git-with-rstudio-order-matters/)this will create a repo on the github for you and sync all the local file in the repo from your local machine.
+
+### [Get resource to get started on quarto blogging](https://www.youtube.com/watch?v=YoKjBcuUP0s&t=18s)
+
+I will use this to build my blog called onkarsinghblog
+
+# [**Quarto Tips & Tricks**](https://www.productive-r-workflow.com/quarto-tricks)

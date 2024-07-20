@@ -1,0 +1,619 @@
+---
+title: "vis_ggplot_tips_n_tricks"
+format: html
+editor: visual
+editor_options: 
+  chunk_output_type: console
+---
+
+
+
+# GGPLOT2\|ggplot2
+
+## Picturesize ggplot2
+Choose the right picture size for your ggplot without leaving RStudio
+
+```{r}
+library(tidyverse)
+# install.packages("remotes")
+remotes::install_github("idmn/ggview")
+library(ggview)
+
+diamonds %>% 
+  ggplot2::ggplot(aes(x = cut, y = price, color = color)) +
+    geom_point()
+ggview(units = "px", height = 800, width = 1000)
+```
+
+
+
+
+
+
+
+
+## Fonts in ggplot 2
+
+### Check what fonts are installed on your system
+```{r}
+systemfonts::system_fonts() |> View()
+```
+
+Nothing there you like?
+Install a new one!
+Google fonts, or your alternative of choice
+“Download family”
+Extract .ttf files
+Right click, install for “all users”
+Restart RStudio
+
+
+### Install fonts locally, restart R Studio + 📦 {systemfonts} ({ragg} + {textshaping}) + Set graphics device to “AGG” + 🤞
+
+### knitr::opts_chunk$set(dev = “ragg_png”)
+
+### [Setting up and debugging custom fonts](https://yjunechoe.github.io/posts/2021-06-24-setting-up-and-debugging-custom-fonts/)
+
+
+### font with showtext package
+https://twitter.com/rappa753/status/1677316572098994178
+
+I've once struggled with using different fonts in ggplot. For some reason I found it super hard to set up fonts in Windows. But then I found the {showtext} package.
+
+Makes it dead-simple to use fonts in 2 steps:
+
+1 Load fonts from google
+2 Enable showtext rendering
+
+Done 
+
+```{r}
+library(tidyverse)
+library(showtext)
+```
+
+
+```{r}
+# import fonts from https://fonts.google.com/
+# First argument = google name, 
+# Second argument = font name that you want to use in R
+
+font_add_google('Lora', 'lora')
+font_add_google('Lobster', 'lobster')
+font_add_google('Anton', 'anton')
+font_add_google('Fira Sans', 'firasans')
+font_add_google('Syne Mono', 'syne')
+
+# Important step to enable showtext font rendering!
+showtext_auto()
+
+
+tib <- tibble(
+  family = c('firasans', 'lora', 'lobster', 'anton', 'syne'), 
+  x = 0, 
+  y = seq(0.0, length.out = 5), 
+  label = 'Showtext shows text. Wow. What an insight.'
+)
+
+
+tib |> 
+  ggplot(aes(x, y, label= label)) + 
+  geom_text(family = tib$family, size = 13, hjust = 0, col = 'dodgerblue4') + 
+  coord_cartesian(xlim = c(0,1), ylim = c(0,1)) + 
+  theme_void()
+```
+
+
+
+
+### fonts thread from twitter
+
+Sick and tired of the default R fonts? Here's a comprehensive guide to
+using different fonts in ggplot2!
+(<https://twitter.com/moriah_taylor58/status/1409709880533950475>)
+
+STEP 1: Find a font. There are many places to find fonts such as
+<http://fontspace.com> and <http://fonts.google.com> (which is what I
+use). Regardless of where you get your font, make sure you download it
+as a TrueType Font (.ttf) file!
+
+STEP 2: Picking a font. It is best practice to use fonts that are
+legible as well as dyslexic-friendly. You can accomplish this by using
+Sans Serif fonts.
+
+For more information on how to make visualizations and texts more
+dyslexic-friendly, such as what background colors to use or font sizes
+to use, please reference this style guide by the British Dyslexia
+Association: <https://t.co/grXip7myuF?amp=1>
+
+<https://www.bdadyslexia.org.uk/advice/employers/creating-a-dyslexia-friendly-workplace/dyslexia-friendly-style-guide>
+
+STEP 2 a. If you want to use more than one font, I recommend using
+<http://fonts.google.com> because it recommends complementary fonts you
+can use and shows a preview of what they'd look like next to each other.
+
+STEP 3: Using your font in a ggplot. Two prerequisites for this step are
+that (1) you need to have your font saved with your source file as well
+as downloaded into your system fonts and (2) you need to install the
+package {showfont}
+
+STEP 4 Okay, time for some code. The first thing you'll want to do is
+add your fonts using the `font_add()` function. This function takes in
+two arguments: family and file path, here family is the name that you
+assign to that font, and the file path leads to the font.
+
+One way that I tend to name my fonts is by where I'm using them in my
+visual, so I'll name them "title", "subtitle", etc. Here's an example:
+
+![](font_add.jfif)
+
+Right after you add your fonts, run the line \`showtext_auto()\`. This
+is what allows the fonts to show in the ggplot and plot preview.
+
+Now, for implementing these fonts in your ggplot2 visualization. You can
+do this in two ways, depending on whether you make a custom theme before
+plotting or stylize your ggplot in the plot call.
+
+My preferred method is to create a custom theme and assign this to an
+object. I prefer this approach because it doesn't clutter up the plot
+call, allowing for more "tinkering" with plot customizations whilst
+maintaining clean code.
+
+There are lots of parameters that can go into this, and you'll get more
+familiar with them through practice (I still look up doc from time to
+time). Here's an example of a custom theme being stored as an object:
+
+![](theme_update.jfif)
+
+In the theme function, the text is assigned a font in the
+\`element_text()\` call with the argument \`family= \`. Next, you can
+add the theme object to your plot:
+
+The other way to use the theme function is in the plot call. The syntax
+is exactly the same - here is a simple example:
+
+![](theme_function_call.jfif)
+
+Hadley Wickham: I'd also recommend checking out ragg
+(<https://www.tidyverse.org/blog/2021/02/modern-text-features/>) --- it
+works directly with the fonts you already have installed. one response
+on this: This is awesome! But what if I need PDF output? I understand
+ragg doesn't work for that?
+
+
+### font example with ragg 
+
+
+
+```{r}
+library(ggplot2)
+library(ragg) # running custom font is enabled by rag package
+```
+
+[Using custom fonts in R examples and exercises] (https://rfortherestofus.com/courses/glamour/lessons/using-custom-fonts-in-r-examples-and-exercises/)
+
+```{r}
+col <- mpg |> 
+  ggplot(aes(cyl, hwy)) +
+  geom_col() +
+  coord_flip() +
+  labs(title = "The example mpg graphs", 
+       x = "Cylinder",
+       y = "Mileage on Highway")
+```
+
+Now go to Rstudio then Tools then Global Options then General then Graphics then Graphic Device then Backend then select AGG (AGG will appear after loading ragg library which we have done above)
+
+
+```{r}
+col + 
+  theme(axis.text = element_text( family = "Snap ITC", color = "purple", size = 12), 
+        plot.title = element_text(family = "Snap ITC", color = "blue", size = 16, face = "bold"))
+```
+
+
+To see which fonts are available in your stytem just search for the fonts and then click on the font folder, if you double click the font name its preview is also available. All fonts are stored in the C:\Windows\Fonts folder. You can also add fonts by simply dragging font files from the extracted files folder into this folder. Windows will automatically install them.
+
+[Add a font help page from Microsoft](https://support.microsoft.com/en-us/office/add-a-font-b7c5f17c-4426-4b53-967f-455339c564c1#:~:text=All%20fonts%20are%20stored%20in,file%2C%20and%20then%20click%20Preview.)
+
+If you want the font to show up when you save it, you need to specify the font on the device, 
+
+```{r}
+# Saving plots
+ggsave("mpg-plot.png", device = agg_png()) # or use other options
+ggsave("mpg-plot.jpeg", device = agg_jpeg())
+```
+
+
+
+
+Using open type features in your fonts i.e. how the font appears
+
+```{r}
+library(systemfonts)
+register_variant(
+  name = "Century", 
+  family = "Century Regular", 
+  weight = "Gothic", 
+  features = font_feature(ligatures = "discretionary", letters = 'stylistic')
+)
+```
+
+[Modern Text Feature in R](https://www.tidyverse.org/blog/2021/02/modern-text-features/#wheres-the-catch)
+
+
+
+
+## Theme in ggplot2
+
+## Other ggplot2 tips
+
+**reproducibly** random jitter plots? Use position_jitter()!
+
+```{r}
+library(ggplot2)
+library(patchwork)
+
+plot1 <- ggplot(mtcars, aes(x = cyl, y = mpg, group = cyl)) +
+  geom_boxplot(width = 0.65) +
+  geom_point(position = position_jitter(seed = 37, width = 0.25))
+
+plot2 <- ggplot(mtcars, aes(x = cyl, y = mpg, group = cyl, color = factor(cyl))) +
+  geom_boxplot(width = 0.65) +
+  geom_point(position = position_jitter(seed = 37, width = 0.25))
+
+plot1 + plot2
+```
+
+
+
+### ₹ rupee symbol in ggplot 2
+
+```{r}
+library(tidyverse)
+library(scales)
+
+label_rupee <- label_dollar(
+  prefix = "₹", 
+  suffix = "",
+  big.mark = ",",
+  decimal.mark = "."
+)
+
+diamonds %>% 
+  ggplot(aes(x = depth, y = price)) +
+  geom_point() + 
+  scale_y_continuous(labels = label_rupee)
+
+```
+
+###  TIL (courtesy of 
+@thomasp85) you can access the defaults for any {ggplot2} geom using the default_aes field (i.e. GeomBlah$default_aes). 
+```{r}
+GeomLine$default_aes
+```
+```{r}
+GeomPoint$default_aes
+```
+```{r}
+GeomArea$default_aes
+```
+```{r}
+GeomBar$default_aes
+```
+
+
+What you need to know about ## ggplot2/Visualization
+
+```{r}
+# Packages and help pages
+helhelp(package = "ggplot2")
+help(package = "ggeasy")
+help(package = "ggpubr")
+
+help(package = "ggrepel")
+help(package = "cowplot")
+aels()
+```
+
+I have got tasks like that in my RStudio code snippets, each startin
+with myg\_ so I can search using autocomplete on my own system, Seems
+slightly faster than searching Google or Stack over fllow
+
+Here's a fun #rstats design pattern I've become more and more fond of:
+use magrittr's %T>% tee operator to keep returning the original value in
+the chain of functions so you can do multiple things at once, like
+saving a ggplot in multiple formats
+
+```{r}
+# library(tidyverse)
+library(magrittr)
+
+my_plot <-  ggplot(mtcars, aes(x = wt, y = mpg)) +
+  geom_point()
+
+my_plot %T>%
+  print() %T>%
+  ggsave(filename = "wt-mpg.pdf", plot = ., 
+         width = 5, height = 3, units = "in", device = cairo_pdf) %T>%
+  ggsave(filename = "wt-mpg.png", plot = ., 
+         width = 5, height = 3, units = "in", device = "png", dpi = 300) %T>%
+  ggsave(filename = "wt-mpg.tiff", plot = ., 
+         width = 5, height = 3, units = "in", device = "tiff", dpi = 300)
+```
+
+I just merged support for one of the most frequently requested features
+into the ggplot2 development branch: Plot titles that span the entire
+plot.
+
+```{r}
+library(ggplot2)
+library(forcats)
+ggplot(mpg, aes(x = fct_rev(fct_infreq(class)))) +
+  geom_bar() + 
+  coord_flip() + 
+  labs(
+    title = "So many SUVs", 
+    subtitle = "Number of cars of different classes in the mpg dataset"
+  )  
+  #  +theme(
+  #   axis.title.y = element_blank(),
+  #   plot.title.position = "plot"
+  # )
+```
+
+## ggeasy
+
+```{r}
+ # install.packages("devtools")
+devtools::install_github("jonocarroll/ggeasy")
+```
+
+[ggeasy](https://jonocarroll.github.io/ggeasy/)
+
+```{r}
+library(ggplot2)
+library(ggeasy)
+
+# rotate x axis labels
+ggplot(mtcars, aes(hp, mpg)) +
+    geom_point() +
+    easy_rotate_x_labels()
+```
+
+```{r}
+# rotate y axis labels
+ggplot(mtcars, aes(hp, mpg)) +
+    geom_point() +
+    easy_rotate_y_labels()
+```
+
+```{r}
+# remove 'size' legend
+ggplot(mtcars, aes(wt, mpg, colour = cyl, size = hp)) +
+    geom_point() +
+    easy_remove_legend(size)
+```
+
+```{r}
+# make the x axis labels larger
+ggplot(mtcars, aes(mpg, hp)) +
+  geom_point() +
+  easy_x_axis_labels_size(20)
+```
+
+```{r}
+ # make all the text red
+ggplot(mtcars, aes(mpg, hp)) +
+  geom_point(aes(fill = gear)) +
+  easy_all_text_color("red")
+```
+
+```{r}
+# remove just x axis
+ggplot(mtcars, aes(wt, mpg)) +
+  geom_point() +
+  easy_remove_x_axis()
+```
+
+```{r}
+# remove y axis ticks
+ggplot(mtcars, aes(wt, mpg)) +
+  geom_point() +
+  easy_remove_y_axis(what = "ticks")
+```
+
+```{r}
+# move legends to bottom
+ggplot(mtcars, aes(wt, mpg, colour = cyl, size = hp)) +
+  geom_point() +
+  easy_move_legend("bottom")
+```
+
+```{r}
+# move legend to left side
+ggplot(mtcars, aes(wt, mpg, colour = cyl, size = hp)) +
+  geom_point() +
+  easy_legend_at("left")
+```
+
+```{r}
+# Make legends horizontal
+ggplot(mtcars, aes(wt, mpg, colour = cyl, size = hp)) +
+  geom_point() + easy_rotate_legend("horizontal")
+```
+
+```{r}
+# use labelled variables
+iris_labs <- iris
+labelled::var_label(iris_labs$Species) <- "Flower\nSpecies"
+labelled::var_label(iris_labs$Sepal.Length) <- "Length of Sepal"
+iris_labs_2 <- iris_labs
+labelled::var_label(iris_labs_2$Species) <- "Sub-genera"
+
+# use variable labels automatically
+ggplot(iris_labs, aes(x = Sepal.Length, y = Sepal.Width)) +
+    geom_line(aes(colour = Species)) +
+    geom_point(data = iris_labs_2, aes(fill = Species), shape = 24) +
+    easy_labs()
+```
+
+These functions will try to teach you the âofficialâ way to achieve
+these goal, usually via the teach argument (where implemented)
+
+```{r}
+ggplot(mtcars, aes(hp, mpg)) +
+    geom_point() +
+    easy_rotate_y_labels(angle = "startatbottom", teach = TRUE)
+#> easy_rotate_y_labels call can be substituted with:
+#> theme(axis.text.y = element_text(angle = 90, hjust = 0))
+```
+
+```{r}
+ggplot(mtcars, aes(wt, mpg)) +
+  geom_point() +
+  easy_remove_y_axis(what = "ticks", teach = TRUE)
+#> easy_remove_y_axis call can be substituted with:
+#> theme(axis.ticks.y = element_blank())
+
+```
+
+```{r}
+ggplot(daughters_birthday)+geom_ballons(alpha=0.5) +scale_fill_viridis_d() 
+```
+
+The purpose of this add-in is to let you explore your data quickly to
+extract the information they hold. You can create visualization with
+[{ggplot2}](https://ggplot2.tidyverse.org/), filter data with
+[{dplyr}](https://dplyr.tidyverse.org/) and retrieve generated code.
+
+<https://cran.r-project.org/web/packages/esquisse/readme/README.html>
+
+# ganttrify package for gantt chart
+
+<https://ganttrify.europeandatajournalism.eu/>
+
+
+## Map of Inida in ggplot
+
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(maps)
+map_data('world') |> 
+  filter(region == "India") |> 
+  ggplot(aes(x = long, y = lat, group = group, fill = "green")) +
+           geom_polygon()
+```
+
+
+```{r}
+map_data('world') |> 
+  filter(region == "India")
+```
+
+## How to store plots as values in a column
+
+```{r}
+histogram <-  gss_cat |> 
+  nest(data = - marital) |> 
+  mutate( histogram = pmap(
+    .l = list(marital, data), 
+    .f = \(marital, data) {
+      ggplot(data, aes (x = tvhours)) + 
+        geom_histogram(binwidth = 1) + 
+        labs(
+          title = marital 
+        )
+    }
+  ))
+histogram
+```
+
+```{r}
+# lets look at the first plot
+histogram$histogram[[1]]
+```
+
+# You don't HAVE to store your #dataViz as individual files - You could dynamically generate plots for some combination of variables and store each #ggplot in a #tidyverse tibble.
+
+```{r}
+library(dplyr)
+my_data <-  palmerpenguins::penguins |>
+  drop_na() |>
+  select(-year) |>
+  group_by(species, island) |>
+  nest() |> 
+  mutate(my_plot = map(data, ~ggplot(
+    data = .x, 
+    mapping = aes( x = bill_length_mm, 
+                   y = bill_depth_mm)
+  ) +
+  geom_point() + 
+    labs(title = str_c(species, ", ", island))
+  )) 
+
+  
+```
+
+```{r}
+my_data |> 
+  pull(my_plot) |> 
+  patchwork::wrap_plots()
+```
+
+
+## [Uncover the magic of ggplot2 with this code snippet! 🔮✨ Explore various 'geoms' for captivating data visualizations](https://twitter.com/rprodigest/status/1713181946312872148/photo/1)
+
+
+```{r}
+help.search("^geom_", package = "ggplot2") |> 
+  pluck("matches") |> 
+  select(1:2) |> 
+  distinct()
+  
+```
+
+## [Don't start from scratch! Use %+% in #ggplot2 to seamlessly incorporate new data into your existing plots, saving time and effort.](https://twitter.com/rprodigest/status/1711069118391017695) 
+
+```{r}
+library(palmerpenguins)
+library(patchwork)
+
+plot1 <- ggplot(data = subset(penguins, species == "Adelie"), 
+                aes(x = bill_length_mm, y = bill_depth_mm)) + 
+  geom_point() + 
+  labs(
+    title = "Scatter Plot of Penguins Bill Depth vs vs. Bill Length", 
+    subtitle = "Adelie Penguins", 
+    x = "Bill Length (mm)", 
+    y = "Bill Depth (mm)" 
+  
+  ) + 
+  theme_minimal() + 
+  geom_smooth()
+plot1
+```
+
+
+```{r}
+## Let us then update plot with data for Chinstrap penguins
+
+plot2 <- plot1 %+% subset(penguins, species == "Chinstrap")
+plot2 + labs(
+  title = "Scatter Plot of Penguins Bill Depth vs vs. Bill Length", 
+    subtitle = "Chinstrap Penguins", 
+    x = "Bill Length (mm)", 
+    y = "Bill Depth (mm)"  
+) + 
+  theme_minimal() + 
+  geom_smooth()
+
+```
+
+
+```{r}
+plot1/plot2
+```
+

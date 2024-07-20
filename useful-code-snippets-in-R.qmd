@@ -1,0 +1,48 @@
+---
+title: "useful-code-snippets-in-R"
+format: html
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(janitor)
+library(writexl)
+```
+
+```{r}
+grants <- read_excel("live_grants.xlsx", sheet = "all_grants") |> clean_names()
+```
+
+## **Sum of all the NA values**
+
+```{r}
+
+sum( is.na(grants) )
+
+```
+
+## **Replacing all NAs with zero**
+
+```{r}
+# Easiest way
+df[is.na(df)] <- 0
+
+
+```
+
+## **Changing data types**
+
+```{r}
+grants |> glimpse()
+```
+
+grants
+
+```{r}
+grants <- grants |> 
+  mutate(across(c(organization_name, grant_status), as.factor), 
+         across(c(start_date, end_date), lubridate::as_date), 
+         across(funding_foundation, as.factor))
+```

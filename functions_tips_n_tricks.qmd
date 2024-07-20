@@ -1,0 +1,237 @@
+---
+title: "functions_tips"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+1 + 1
+```
+
+You can add options to executable code like this
+
+```{r}
+#| echo: false
+2 * 2
+```
+
+The `echo: false` option disables the printing of code (only output is displayed).
+
+# 
+
+Hadley Wickham functions solicitation
+
+https://twitter.com/hadleywickham/status/1571603361350164486 What tweetable [#rstats](https://twitter.com/hashtag/rstats?src=hashtag_click) function have you written recently to reduce duplication in your data analysis code? I'm looking for some inspiration as I re-write the functions chapter in R4DS.
+
+### 
+
+rescale_z
+
+```{r}
+rescale_z <- function(x) {
+  (x - mean(x, na.rm = TRUE)) / sd(x, na.rm = TRUE)
+}
+```
+
+```{r}
+squish <- function(x, min, max) {
+  case_when(
+    x < min ~ min,
+    x > max ~ max,
+    TRUE ~ x
+  )
+}
+```
+
+```{r}
+enrich_join <- function(x, y, ..., by = NULL) {
+  left_join(x, y %>% select(...), by = by)
+}
+
+```
+
+```{r}
+# Oooh interesting. You almost want something like this:
+
+enrich_join <- function(x, y, ..., by = NULL) {
+  left_join(x, y %>% select(all_of(by), ...), by = by)
+}
+
+# So that you don't need to worry about selecting the by #variables
+```
+
+```{r}
+if_na_0 <- function(x){
+if_else(is.na(x),0,x)
+}
+
+# FWIW you could also use dplyr::coalesce() for this: coalesce(x, 0)
+```
+
+### more readable contingency table
+
+```{r}
+count_wide <- function(data, rows, cols) {
+  data |> 
+    count(across(c({{rows}}, {{cols}}))) |> 
+    pivot_wider(names_from = {{cols}}, values_from = n)
+}
+# This supports takes advantage of count() and can use multiple rows/cols
+```
+
+### make percentage table
+
+```{r}
+make_percentage_table <- function(x, col, group_col){
+  x |> 
+    count({{group_col}}, {{col}}) |> 
+    group_by({{group_col}}) |> 
+    mutate(perc = n *100/sum(n)) |> 
+    ungroup()
+}
+
+# hadley's advice: FWIW if you put {{group_col}} etc inside of across(), you'd be able to select multiple variables
+```
+
+# Functions in R
+
+What's the most useful function you've ever created in #rstats?
+
+https://twitter.com/dgkeyes/status/1475891826628259842
+
+# [**Avoid duplicate code with powerful functions in 150 seconds**](https://www.youtube.com/watch?v=E0I-G6rWESQ)
+
+```{r}
+library(tidyverse)
+mpg |> 
+  mutate(manufacturer = factor(manufacturer) |> fct_infreq()) |> 
+  ggplot() + 
+  geom_bar(aes(y = manufacturer), fill = 'dodgerblue4') +
+  theme_minimal(base_size = 16, base_family = 'Source Sans Pro')
+
+diamonds |> 
+  mutate(cut = factor(cut) |> fct_infreq()) |> 
+  ggplot() + 
+  geom_bar(aes(y = cut), fill = 'dodgerblue4') +
+  theme_minimal(base_size = 16, base_family = 'Source Sans Pro')
+
+
+nycflights13::flights |> 
+  mutate(carrier = factor(carrier) |> fct_infreq()) |> 
+  ggplot() + 
+  geom_bar(aes(y = carrier), fill = 'dodgerblue4') +
+  theme_minimal(base_size = 16, base_family = 'Source Sans Pro')
+
+
+palmerpenguins::penguins |> 
+  mutate(species = factor(species) |> fct_infreq()) |> 
+  ggplot() + 
+  geom_bar(aes(y = species), fill = 'dodgerblue4') +
+  theme_minimal(base_size = 16, base_family = 'Source Sans Pro')
+```
+
+```{r}
+# lets put the above in function
+
+mpg |> 
+  mutate(manufacturer = factor(manufacturer) |> fct_infreq()) |> 
+  ggplot() + 
+  geom_bar(aes(y = manufacturer), fill = 'dodgerblue4') +
+  theme_minimal(base_size = 16, base_family = 'Source Sans Pro')
+
+```
+
+```{r}
+bar_chart <- function(dat, var) {
+  dat |> 
+  mutate({{var}} :=  factor({{var}}) |> fct_infreq()) |> 
+  ggplot() + 
+  geom_bar(aes(y = {{var}}), fill = 'dodgerblue4') +
+  theme_minimal(base_size = 16, base_family = 'Source Sans Pro')
+}
+```
+
+```{r}
+bar_chart <- function(dat, var) {
+  dat %>%
+    mutate({{var}} := factor({{var}}) |> fct_infreq()) |> 
+  ggplot(aes(y = {{var}})) + 
+    geom_bar(fill = 'dodgerblue4') +
+    theme_minimal(base_size = 16, base_family = 'Source Sans Pro')
+}
+```
+
+```{r}
+bar_chart(mpg, manufacturer)
+bar_chart(diamonds, cut)
+bar_chart(nycflights13::flights, carrier)
+bar_chart(palmerpenguins::penguins, species)
+```
+
+```{r}
+# now instead of hardcoding the base_size and base_family in the theme above, we can use the ... operation as part of the function, this is something taking something and pushing it somewhere else
+
+bar_chart <- function(dat, var, ...) {
+  dat %>%
+    mutate({{var}} := factor({{var}}) |> fct_infreq()) |> 
+  ggplot(aes(y = {{var}})) + 
+    geom_bar(fill = 'dodgerblue4') +
+    theme_minimal(...)
+}
+
+```
+
+```{r}
+bar_chart(mpg, manufacturer, base_size = 24, base_family = 'Merriweather')
+bar_chart(diamonds, cut, base_size = 16, base_family = 'Source Sans Pro')
+bar_chart(nycflights13::flights, carrier, base_size = 32, base_family = 'Oleo Script')
+bar_chart(palmerpenguins::penguins, species,  base_size = 30, base_family = 'Lobster')
+```
+
+# [**Using functions instead of for-loops**](https://www.youtube.com/watch?v=ji80yMlwsYI)
+
+|                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+|:------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Last week, I've attended a [beginner's workshop on JavaScript (JS)](https://link.mail.beehiiv.com/ss/c/VA2MtxjrnNeqOrBIUwTmwpK8-helVeUNpaUqYRb3LDALAhHE1X3H3hpnIprehek1gCUf7Te8KoaywbLqqiAqCUl0Jodtwy2RJhOIUOOVqXDWzXO0jIacp_nJkyKuxxFiJHniYiRfnB6Z6cdKboYy3qxrhaBUHHS9boJtn3ttNHTrvEIdjwmgoHXgSdDrOxLABWrrLh1EMaX0JbR4VrsBBSPS6Y2zr3VitRuJGxDCUf8/3vo/8bGgVv_JQluOgnjJZYK7EQ/h4/uv1KXxT88tOPVImffTlg0RVeSkUI5NArkGRrkjUs70Y). And one thing that I found striking is that JS uses map functions instead of for loops all the time. |
+| What I found most interesting is that the syntax is extremely similar to R's functional programming syntax. So today, let me show you how to use functions instead of for-loops in R. And once you understand that, you will have no problem understanding the JS version of that. You know, so that you're prepared when you decide to go on a JS adventure                                                                                                                                                                        |
+
+```{r}
+library(tidyverse)
+dat <- gapminder::gapminder
+
+```
+
+```{r}
+slopes <- numeric(5)
+names(slopes) <- unique(dat$continent)
+
+
+for (selected_continent in unique(dat$continent)){
+  filtered_data <- dat |> 
+    filter(continent == selected_continent)
+  
+  lin_mod <- lm(
+    data = filtered_data, 
+    lifeExp ~ year
+  )
+  
+  slopes[selected_continent] <- coefficients(lin_mod)[2]
+  
+  slopes
+}
+```
+
+```{r}
+nested_data <- dat |> 
+  group_by(continent) |> 
+  nest() |> 
+  ungroup()
+```

@@ -1,0 +1,61 @@
+---
+title: "Configuring Python in Rstudio"
+format: html
+editor: visual
+---
+
+## 
+
+```{Configuring Python in Rstudio}
+
+Step 0: Download Python on your Sytem
+
+Step 1: Install Reticulate package
+
+Step 2: Type Sys.which("python") to get the correct python path to be used for use_python command below 
+
+{r}
+Sys.which("python")
+
+Step 3: use the reticulate library and use_python command 
+
+{r}
+library(reticulate)
+use_python("C:\\Users\\ONKARA~1.SIN\\AppData\\Local\\Programs\\Python\\PYTHON~1\\python.exe")
+
+Step 4: usethis::edit_r_profile(scope = c("user", "project")) to open the .Rprofie and then use this exact command there and save and restart the R session
+
+
+Managing R with .Rprofile, .Renviron, Rprofile.site, Renviron.site, rsession.conf, and repos.conf
+
+
+Step 5: open the  Rstudio terminal 
+pip install virtualenv
+
+Step 6: check which version of the python is running 
+
+which python
+
+
+Step 7: install the packages
+
+pip install numpy pandas matplotlib
+
+
+Reference: installing python packages
+
+
+Step 8: Run the Python code
+
+{python}
+import pandas as pd
+
+
+Step 9: if we want to switch the Console back to R  just type the following in the pyhon console
+
+exit or quit
+
+Step 9 : if we want switch back to Python again use the 
+
+reticulate:: repl_python()
+```

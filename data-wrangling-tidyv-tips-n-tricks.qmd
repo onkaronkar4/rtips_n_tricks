@@ -1,0 +1,328 @@
+---
+title: "data-wrangling-tidyv-tips-n-tricks"
+format: html
+editor: visual
+---
+
+## vignette
+
+Unlock the world of R programming with vignette("programming"). Learn the fundamentals of programming with dplyr and become a coding maestro.
+
+```{r}
+vignette("programming")
+```
+
+Two tables, endless possibilities! vignette("two-table") is your guide to mastering the art of joining and blending datasets in R.
+
+```{r}
+vignette("two-table")
+```
+
+Master the art of column-wise operations in R with vignette("colwise"). Empower your data workflows and boost productivity.
+
+```{r}
+vignette("colwise")
+```
+
+## DPLR
+
+### relocate
+
+### 
+
+The relocate( ) function from DPLYR lets you easily reposition a variable within your data frame. You can move a group of columns or just a single one.
+
+```{r}
+library(tidyverse)
+
+```
+
+```{r}
+data <- data.frame(
+  id = 1:4, 
+  x1 = 4:7, 
+  x2 = 5:8, 
+  x3 = 3:6, 
+  x4 = 7:10
+)
+
+data
+```
+
+```{r}
+data |> 
+  relocate(x1, x2, .after = last_col())
+```
+
+```{r}
+data |> 
+  relocate (x3, .before = x1)
+```
+
+## add_row
+
+Adding a new row to a data frame using dplyr is very easy and intuitive.\
+\
+Just use the function add_row(df, col_name= value)
+
+```{r}
+df <- data.frame(
+  id = 1:4, 
+  name = c('Jane', 'Joe','Moe', 'Tina'), 
+  amount = c(10, 32, 21, 42)
+)
+
+df
+```
+
+```{r}
+df |> add_row(name = 'Onkar')
+```
+
+```{r}
+df |> 
+add_row(name = 'Onkar', amount  = 100)
+```
+
+## dense_rank and percent_rank
+
+You can rank functions with the help of dplyr library.\
+To add a calculated variable, we will use mutate. The rankings calculations are performed by the dense_rank( ) and percent_rank( ) functions.
+
+```{r}
+data <- data.frame(
+  id = 1:4, 
+  player = paste('P', seq(1,4), sep = ''), 
+  pts = c(233, 245, 432, 234)
+)
+
+data
+```
+
+```{r}
+
+# the ranking functions are good options when you need to rank observations by a given variable
+data |> 
+  mutate(rank = dense_rank(pts))
+```
+
+```{r}
+# Percent rank
+data |> 
+  mutate(pct_rank = percent_rank(pts)) |> 
+  arrange(pct_rank)
+```
+
+## Across
+
+# [**Data wrangling in a single step with across()**](https://www.youtube.com/watch?v=sVIJk8f3DwM&list=LL&index=1)
+
+```{r}
+
+# Dont do this
+palmerpenguins::penguins |> 
+  summarize(mean_bill_length = mean(bill_length_mm, na.rm = TRUE), 
+            mean_bill_depth = mean(bill_depth_mm, na.rm = TRUE), 
+            mean_flipper_length = mean(flipper_length_mm, na.rm = TRUE), 
+            mean_body_mass = mean(body_mass_g, na.rm = TRUE)
+    
+  )
+
+# Do this instead
+
+palmerpenguins::penguins |> 
+  summarize(across(
+    .cols = c(
+      bill_length_mm, 
+      bill_depth_mm, 
+      flipper_length_mm,
+      body_mass_g),
+    
+    .fns = \(x)  mean(x, na.rm = TRUE)
+      
+    )
+  )
+
+# calculating multiple functions at once
+
+
+  palmerpenguins::penguins |> 
+  summarize(across(
+    .cols = c(
+      bill_length_mm, 
+      bill_depth_mm, 
+      flipper_length_mm,
+      body_mass_g),
+    
+    .fns = c (
+      \(x)  mean(x, na.rm = TRUE), 
+      \(x) var(x, na.rm = TRUE)
+      
+    )
+  )
+  )
+  
+  # but difficult to find out which column is mean and which one is variance so lets do this. 
+  
+   palmerpenguins::penguins |> 
+  summarize(across(
+    .cols = c(
+      bill_length_mm, 
+      bill_depth_mm, 
+      flipper_length_mm,
+      body_mass_g),
+    
+    .fns = c (
+      mean = \(x)  mean(x, na.rm = TRUE), 
+      variance = \(x) var(x, na.rm = TRUE)
+      
+    )
+  )
+  )
+   
+# still this type of output is not great because it uses a lots of column and only one row, so we can do that following 
+   
+palmerpenguins::penguins |> 
+  summarize(across(
+    .cols = c(
+      bill_length_mm, 
+      bill_depth_mm, 
+      flipper_length_mm,
+      body_mass_g),
+    
+    .fns = c (
+      mean = \(x)  mean(x, na.rm = TRUE), 
+      variance = \(x) var(x, na.rm = TRUE) 
+    ),
+      .names = '{.col}---{.fn}'
+      
+    
+  )
+  ) |> 
+  pivot_longer(
+    cols = everything(), 
+    names_sep = '---', 
+    names_to = c('variable', 'stat')
+      
+  )
+
+```
+
+```{r}
+# if you have a data set say which has more than 70 columns like ames dataset typing the column names in the across will be a headache
+
+modeldata::ames |> 
+  summarize(across(
+    .cols = where(is.numeric),
+    
+    .fns = c (
+      mean = \(x)  mean(x, na.rm = TRUE), 
+      variance = \(x) var(x, na.rm = TRUE) 
+    ),
+      .names = '{.col}---{.fn}'
+      
+    
+  )
+  ) |> 
+  pivot_longer(
+    cols = everything(), 
+    names_sep = '---', 
+    names_to = c('variable', 'stat')
+      
+  )
+```
+
+```{r}
+# if we dont want to calculate it for all numeric data we can use some more tidyselect to refine the amount of columns that you want to target, so e.g. we are targeting all the columns whose names start with Lot
+
+modeldata::ames |> 
+  summarize(across(
+    .cols = where(is.numeric) & starts_with('Lot'),
+    
+    .fns = c (
+      mean = \(x)  mean(x, na.rm = TRUE), 
+      variance = \(x) var(x, na.rm = TRUE) 
+    ),
+      .names = '{.col}---{.fn}'
+      
+    
+  )
+  ) |> 
+  pivot_longer(
+    cols = everything(), 
+    names_sep = '---', 
+    names_to = c('variable', 'stat')
+      
+  )
+
+```
+
+```{r}
+# so finally, summarize() + across() = summarize many columns and mutate() + across() = transform many columns
+
+modeldata::ames |> 
+  summarize(across(
+    .cols = matches('(Y|y)ear'), 
+    .fns = \(x) lubridate::make_date(year = x)
+  )) |> 
+  select(
+    where(lubridate::is.Date))
+```
+
+## advanced piping with the use of dot even in the base r function
+
+```{r}
+starwars
+```
+
+```{r}
+  data <- starwars |> 
+  select(name, sex, height) |> 
+  filter(sex %in% c("male", "female")) |> 
+  drop_na(height)
+  
+```
+
+lets do the t-test to compare the height of the male and female
+
+```{r}
+t.test(height ~ sex, data = data)
+```
+
+there is no significant difference between the height of the male and female. as the p value is 0.1181 which is greater than 0.05.
+
+we can use the base t.test function using this, the dot argument in place of data
+
+```{r}
+library(magrittr)
+  starwars |> 
+  select(name, sex, height) |> 
+  filter(sex %in% c("male", "female")) |> 
+  drop_na(height) |> 
+  
+   t.test(height ~ sex,  data = .)
+```
+
+creating value bins with cut function
+
+```{r}
+starwars |> 
+  select(mass) |> 
+  na.omit() |> 
+  mutate(size = cut(mass, breaks = c(0, 50, 100, Inf), 
+                    labels = c("Small", "Medium", "Large"))) |> 
+  count(size)
+```
+
+```{r}
+# run the code without the labels to see the bins
+starwars |> 
+  select(mass) |> 
+  na.omit() |> 
+  mutate(size = cut(mass, breaks = c(0, 50, 100, Inf), 
+                    )) |> 
+  count(size)
+
+```
+
+( round bracket- means everything after zero but not including zero and the square bracket\] means including 50. so exactly 50/small in the above example will be counted in the first row and exactly 100 will be counted in the 2nd row/medium in the above example.
