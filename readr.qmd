@@ -1,0 +1,51 @@
+---
+title: "readr"
+format: html
+---
+
+
+
+```{r}
+library(tidyverse) # for functions beyond readr
+library(gt) # to get the exibble package
+library(readr)
+```
+
+Interesting fun fact I've learned while creating fake data for my data cleaning course:
+
+You can chain multiple `write_*()` functions from the {readr} package.
+
+All of these invisibly return the original data.
+
+So you can just pass that invisible output to the next write function.
+
+That way, you can save the same data set to a myriad of formats quick & easy.
+
+Proably a rare use case but for me it was just the right thing to create a bunch of different file formats for teaching.
+
+
+
+```{r}
+exibble |> 
+  write_csv(
+    "O1_exibble_no_headers.csv", col_name = F
+  ) |> 
+  write_csv("02_exibble.csv") |> 
+  write_csv2(
+    "03_exibble_european.csv"
+    ) |> 
+  write_tsv(
+  "04_exibble.tsv"
+  ) |> 
+  write_csv(
+    "05_exibble_with_metadata_csv", 
+    append = TRUE, 
+    col_names = TRUE
+  ) |> 
+  write_delim(
+    "12_weird_delimiter_text", delim = "|"
+  )
+  
+  
+```
+
